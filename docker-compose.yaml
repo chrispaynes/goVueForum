@@ -1,0 +1,47 @@
+version: '3'
+networks:
+  proxy:
+    driver: bridge
+services:
+  traefik:
+      image: traefik
+      restart: unless-stopped
+      command: --api --docker
+      networks:
+        - proxy
+      ports:
+        - "80:80"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      labels:
+        - "traefik.backend=traefik"
+        - "traefik.frontend.rule=Host:traefik.vf.localhost"
+        - "traefik.port=8080"
+  api:
+    container_name: vue-forum-api
+    build:
+      context: .
+      dockerfile: ./docker/API.Dockerfile
+    networks:
+      - proxy
+    restart: always
+    labels:
+      - "traefik.backend=api"
+      - "traefik.frontend.rule=Host:api-vf.localhost"
+      - "traefik.docker.network=proxy"
+      - "traefik.port=3000"
+  ui:
+    container_name: vue-forum-ui
+    build:
+      context: .
+      dockerfile: ./docker/UI.Dockerfile
+    networks:
+      - proxy
+    depends_on:
+      - api
+    restart: always
+    labels:
+      - "traefik.backend=ui"
+      - "traefik.frontend.rule=Host:ui-vf.localhost"
+      - "traefik.docker.network=proxy"
+      - "traefik.port=80"
