@@ -21,9 +21,11 @@ services:
     container_name: vue-forum-api
     build:
       context: .
-      dockerfile: ./docker/API.Dockerfile
+      dockerfile: ./docker/API.Dev.Dockerfile
     networks:
       - proxy
+    volumes:
+      - ${PWD}/api:/go/src/goVueForum/api
     restart: always
     labels:
       - "traefik.backend=api"
@@ -46,3 +48,5 @@ services:
       - "traefik.docker.network=proxy"
       - "traefik.port=8080"
       - "traefik.frontend.passHostHeader=true"
+volumes:
+  api:
