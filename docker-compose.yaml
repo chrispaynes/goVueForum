@@ -25,7 +25,7 @@ services:
     networks:
       - proxy
     volumes:
-      - ${PWD}/api:/go/src/goVueForum/api
+      - ~/go/src/goVueForum/api:/go/src/goVueForum/api
     restart: always
     labels:
       - "traefik.backend=api"
