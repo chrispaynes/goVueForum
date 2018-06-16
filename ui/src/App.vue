@@ -9,7 +9,6 @@
 </template>
 
 <script>
-  import HelloWorld from './components/HelloWorld.vue';
   import Footer from './components/Footer';
   import Header from './components/Header';
 
@@ -17,7 +16,6 @@
     name: 'app',
     components: {
       Header,
-      HelloWorld,
       Footer
     }
   }
