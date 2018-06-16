@@ -34,14 +34,15 @@ services:
     container_name: vue-forum-ui
     build:
       context: .
-      dockerfile: ./docker/UI.Dockerfile
+      dockerfile: ./docker/UI.Dev.Dockerfile
     networks:
       - proxy
-    depends_on:
-      - api
     restart: always
+    volumes:
+      - ./ui/:/app/
     labels:
       - "traefik.backend=ui"
       - "traefik.frontend.rule=Host:ui-vf.localhost"
       - "traefik.docker.network=proxy"
-      - "traefik.port=80"
+      - "traefik.port=8080"
+      - "traefik.frontend.passHostHeader=true"
