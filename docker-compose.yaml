@@ -73,5 +73,20 @@ services:
       - "6379:6379"
     volumes:
       - ~/go/src/goVueForum/.tmp/redis:/data
+  rabbitMQ:
+    container_name: rabbitMQ
+    image: rabbitmq:3.7-management
+    networks:
+      - proxy
+    restart: always
+    env_file:
+      - ~/go/src/goVueForum/docker/rabbitmq.env
+    ports:
+      - "5672:5672"
+    labels:
+      - "traefik.backend=rabbitMQ"
+      - "traefik.frontend.rule=Host:rabbitMQ-vf.localhost"
+      - "traefik.docker.network=proxy"
+      - "traefik.port=15672"
 volumes:
   api:
