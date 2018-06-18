@@ -1,6 +1,6 @@
 <template>
         <div id='reply_component' class="col-xs-12 text-center pad-vert-md">
-            <form action='data/commands/Reply.php' method="POST">
+            <form action='http://api-vf.localhost/reply' method="POST">
                 <div class="form-group col-xs-12 margin-bottom-md">
                     <label class="col-sm-12 margin-bottom-sm txt-green reply_label">Reply</label>
                     <textarea rows="12" class="col-xs-12" type="text" name="body" placeholder="" required />

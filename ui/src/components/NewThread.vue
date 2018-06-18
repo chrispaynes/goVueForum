@@ -1,6 +1,6 @@
 <template>
         <div id='new_thread_component' class='col-xs-12'>
-            <form action='data/commands/NewThread.php' method='POST'>
+            <form action='http://api-vf.localhost/thread/new' method='POST'>
             <h1 class='text-center margin-bottom-lg'>Start A New Thread</h1>
                 <div class='form-group col-sm-12'>
                     <label class='col-xs-12 col-sm-2 txt-green'>Thread Title</label>

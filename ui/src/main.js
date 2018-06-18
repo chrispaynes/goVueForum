@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import Resource from 'vue-resource';
 
 import App from './App.vue';
 import Index from './components/Index.vue';
@@ -11,6 +12,7 @@ import Profile from './components/Profile.vue';
 import UserIndex from './components/UserIndex.vue';
 
 Vue.use(VueRouter);
+Vue.use(Resource);
 
 Vue.config.productionTip = false;
 

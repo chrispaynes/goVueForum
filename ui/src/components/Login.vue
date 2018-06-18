@@ -1,17 +1,16 @@
 <template>
-        <div id='registration_component' method='POST' onsubmit="completeAndRedirect();return false;" class='col-xs-12'>
-            <form id='Login' action='data/commands/Login.php' method='POST'>
+        <div id='registration_component' class='col-xs-12'>
+            <form id='Login' @submit.prevent="onSubmit">
                 <h1 class='text-center margin-lg'>Forum Login</h1>
                 <div class='form-group col-xs-12 col-sm-4'>
                     <label class='col-xs-12 col-sm-4 txt-green text-size-sm'>Username</label>
-                    <input class='col-xs-12 col-sm-8 margin-bottom-xs pad-vert-xs' type='text' name='uname' placeholder='Username' required>
+                    <input v-model="login.username" class='col-xs-12 col-sm-8 margin-bottom-xs pad-vert-xs' type='text' name='uname' placeholder='Username' required>
                 </div>
                 <div class='form-group col-xs-12 col-sm-4'>
                     <label class='col-xs-12 col-sm-4 txt-green text-size-sm'>Password</label>
-                    <input v-model="pwd" class='col-xs-12 col-sm-8 margin-bottom-xs pad-vert-xs' type='password' placeholder='Password' required>
+                    <input v-model="login.password" class='col-xs-12 col-sm-8 margin-bottom-xs pad-vert-xs' type='password' placeholder='Password' required>
                 </div>
                 <div class='form-group col-xs-12 col-sm-2'>
-                    <input class='hidden' type='text' name='pwd' v-bind:value='SHA1(pwd)' required>
                     <input class='btn btn-success' type='submit' name='login' value='Login'>
                 </div>
             </form>
@@ -21,10 +20,15 @@
 <script>
   export default {
     name: 'Login',
-    props: ['posts'],
     data () {
-      return { pwd: '' };
+      return { login: {username: '', password: ''} };
     },
+    methods: {
+        onSubmit () {
+          console.log("THIS: ", this);
+            this.$http.post('http://api-vf.localhost/login', this.login);
+        }
+    }
   }
 </script>
 
