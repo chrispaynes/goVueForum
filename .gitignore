@@ -4,3 +4,4 @@ api/tmp/
 api/pkg/tmp/
 api/database/
 *.env
+*.toml

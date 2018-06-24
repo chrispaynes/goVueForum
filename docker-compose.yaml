@@ -30,6 +30,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - rabbitMQ
     labels:
       - "traefik.backend=api"
       - "traefik.frontend.rule=Host:api-vf.localhost"
