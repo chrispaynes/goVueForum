@@ -7,9 +7,19 @@ import (
 
 // Post represents ...
 type Post struct {
-	Author    string `json:"author"`
-	Body      string `json:"body"`
-	Timestamp uint32 `json:"timestamp"`
+	Title       string `json:"title"`
+	Author      Author `json:"author"`
+	Body        string `json:"body"`
+	ID          uint32 `json:"id"`
+	Timestamp   uint32 `json:"timestamp"`
+	LastUpdated uint32 `json:"lastUpdatedAt"`
+}
+
+// Author represents...
+type Author struct {
+	LastLogin uint32 `json:"lastLogin"`
+	ID        uint32 `json:"id"`
+	Username  string `json:"username"`
 }
 
 // GetHealth serves as a simple server health check
@@ -36,14 +46,28 @@ func GetIndex(w http.ResponseWriter, req *http.Request) {
 
 	posts := []Post{
 		{
-			Author:    "Test Author",
-			Body:      "Test Post Body",
-			Timestamp: 1529886553,
+			Title: "Test Title",
+			Author: Author{
+				Username:  "Test Author",
+				ID:        123,
+				LastLogin: 1529886553,
+			},
+			Body:        "Test Post Body",
+			ID:          1,
+			Timestamp:   1529886553,
+			LastUpdated: 1529886553,
 		},
 		{
-			Author:    "Test Author2",
-			Body:      "Test Post Body2",
-			Timestamp: 1529886554,
+			Title: "Test Title2",
+			Author: Author{
+				Username:  "Test Author2",
+				ID:        456,
+				LastLogin: 1529886553,
+			},
+			Body:        "Test Post Body2",
+			ID:          2,
+			Timestamp:   1529886554,
+			LastUpdated: 1529886554,
 		},
 	}
 
