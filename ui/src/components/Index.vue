@@ -34,16 +34,15 @@
 
   export default {
     name: 'Index',
-    props: ['posts'],
     data: function() {
         return { posts: [], most_recent_post: [] };
     },
     beforeCreate: function() {
         var self = this;
 
-        axios.get('./data/queries/Post.php', {})
+        axios.get('http://api-vf.localhost/index', {})
         .then(function(response) {
-            self.posts = response.data.filter(function(p) {return p.post_is_reply == 'false';});
+            self.posts = response.data.filter(function(p) {p.post_is_reply == 'false';});
         })
         .catch(function(error) {
             console.log(error);

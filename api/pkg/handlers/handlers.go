@@ -1,17 +1,32 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"reflect"
+	"time"
 )
 
-// JSONresponse  ...
+// JSONresponse represents ...
 type JSONresponse struct {
-	Result   map[string]string `json:"data"`
-	Metadata map[string]string `json:"metadata"`
+	Result   Result   `json:"result"`
+	Metadata Metadata `json:"metadata"`
+	Error    string   `json:"error,omitempty"`
 }
 
-// JWT ...
+// Result represents...
+type Result struct {
+	Data map[string]interface{} `json:"data"`
+}
+
+// Metadata represents...
+type Metadata struct {
+	ResponseTime string `json:"responseTime"`
+	RedirectURL  string `json:"redirectURL,omitempty"`
+}
+
+// JWT represents...
 type JWT struct{}
 
 // Validator ...
@@ -71,4 +86,32 @@ func Get(i interface{}, key string) (reflect.Value, error) {
 	}
 
 	return fieldname, nil
+}
+
+func writeJSONresponse(w http.ResponseWriter, h http.Header, t time.Time, err error, m JSONresponse) {
+	w.Header().Set("Access-Control-Allow-Headers", "content-type")
+	w.Header().Set("Access-Control-Allow-Origin", h.Get("Origin"))
+
+	fmt.Printf("\n\nMAP: %v\n\n", m)
+
+	code := 200
+	elapsed := time.Since(t)
+
+	jsonR := &JSONresponse{
+		Metadata: Metadata{
+			ResponseTime: fmt.Sprintf("%s", (elapsed * 1000)),
+		},
+	}
+
+	if err != nil {
+		jsonR.Error = err.Error()
+		code = 400
+	} else {
+		jsonR.Result = m.Result
+	}
+
+	resp, _ := json.Marshal(jsonR)
+
+	w.WriteHeader(code)
+	w.Write(resp)
 }

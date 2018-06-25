@@ -20,6 +20,7 @@ func New() *mux.Router {
 
 func handle(r *mux.Router) *mux.Router {
 	r.HandleFunc("/healthz", handlers.GetHealth).Methods("GET")
+	r.HandleFunc("/index", handlers.GetIndex).Methods("GET")
 	r.HandleFunc("/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/login", handlers.Login).Methods("OPTIONS", "POST")
 	return r

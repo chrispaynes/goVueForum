@@ -97,42 +97,20 @@ func marshalPayload(i interface{}, rc io.ReadCloser) error {
 	return nil
 }
 
-func writeJSONresponse(w http.ResponseWriter, h http.Header, t time.Time, err error, m ...map[string]string) {
-	w.Header().Set("Access-Control-Allow-Headers", "content-type")
-	w.Header().Set("Access-Control-Allow-Origin", h.Get("Origin"))
-
-	code := 200
-	elapsed := time.Since(t)
-
-	jsonR := &JSONresponse{
-		Metadata: map[string]string{
-			"responseTime": fmt.Sprintf("%s", (elapsed * 1000)),
-			"redirectURL":  "",
-		},
-	}
-
-	if err != nil {
-		jsonR.Result = map[string]string{
-			"error": err.Error(),
-		}
-		code = 400
-	} else {
-		jsonR.Result = m[0]
-	}
-
-	resp, _ := json.Marshal(jsonR)
-
-	w.WriteHeader(code)
-	w.Write(resp)
-}
-
 // Login logs a user into the forum
 func Login(w http.ResponseWriter, req *http.Request) {
+	var err error
+	var res JSONresponse
+
 	start := time.Now()
 
 	c, err := NewCommand(req.Body)
+
 	if err != nil {
-		writeJSONresponse(w, req.Header, start, err)
+		res = JSONresponse{
+			Error: err.Error(),
+		}
+		writeJSONresponse(w, req.Header, start, err, res)
 		return
 	}
 
@@ -142,7 +120,10 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	err = c.validate(hasUsernameAndPassword)
 
 	if err != nil {
-		writeJSONresponse(w, req.Header, start, err)
+		res = JSONresponse{
+			Error: err.Error(),
+		}
+		writeJSONresponse(w, req.Header, start, err, res)
 		return
 	}
 
@@ -162,12 +143,16 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	// 	log.Fatalf("failed to execute command: %s", err.Error())
 	// }
 
-	result := map[string]string{
-		"jwt":     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ffI2NH89HmR6Swa7aIAsjSv65vftOBOCa_nuxRevF0E",
-		"user_id": "1234",
+	res = JSONresponse{
+		Result: Result{
+			Data: map[string]interface{}{
+				"jwt":     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ffI2NH89HmR6Swa7aIAsjSv65vftOBOCa_nuxRevF0E",
+				"user_id": 1234,
+			},
+		},
 	}
 
-	writeJSONresponse(w, req.Header, start, nil, result)
+	writeJSONresponse(w, req.Header, start, nil, res)
 }
 
 // Logout logs a user out of the forum

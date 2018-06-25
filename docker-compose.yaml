@@ -27,6 +27,8 @@ services:
     volumes:
       - ~/go/src/goVueForum/api:/go/src/goVueForum/api
     restart: always
+    env_file:
+      - ~/go/src/goVueForum/docker/postgres.env
     depends_on:
       - postgres
       - redis

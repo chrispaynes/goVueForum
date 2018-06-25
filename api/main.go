@@ -1,6 +1,7 @@
 package main
 
 import (
+	"goVueForum/api/pkg/postgres"
 	"goVueForum/api/pkg/rabbitmq"
 	"goVueForum/api/pkg/router"
 	"net/http"
@@ -45,4 +46,15 @@ func main() {
 	}()
 
 	rabbitmq.Init(rabbitURL)
+
+	c := postgres.NewConn(viper.GetString("dev.bridge_IP"))
+	err := c.Open()
+
+	if err != nil {
+		log.Infof("failed to open Postgres database connection: %v", err)
+	}
+
+	c.GetCategories()
+
+	defer c.Close()
 }
