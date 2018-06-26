@@ -23,7 +23,7 @@
                         <div class='col-xs-offset-1 col-xs-12 col-sm-3 col-md-offset-0 col-md-2'>by
                           <router-link :to="{ path: `/user/${p.author.id}`}">{{ p.author.username }}</router-link>
                            </div>
-                        <div class='col-xs-offset-1 col-xs-12 col-sm-8 col-md-offset-0 col-md-4'>on {{ p.lastUpdatedAt}}</div>
+                        <div class='col-xs-offset-1 col-xs-12 col-sm-8 col-md-offset-0 col-md-4'> {{ p.lastUpdatedAt }}</div>
                     </div>
                     <hr v-if="index != (posts.length - 1)"/>
                 </li>
@@ -48,7 +48,7 @@
           self.posts = response.data.result.data.posts
 
           self.posts.forEach(p => {
-            p.lastUpdatedAt = moment.unix(p.lastUpdatedAt).format('ddd MMMM Do YYYY, h:mm:ss a');
+            p.lastUpdatedAt = moment(p.lastUpdatedAt).format('MMMM Do, YYYY, h:mm:ss a');
           });
 
         })
