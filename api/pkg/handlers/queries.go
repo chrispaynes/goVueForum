@@ -13,18 +13,18 @@ import (
 
 // Post represents ...
 type Post struct {
-	ID          uint32 `json:"id"`
 	Author      Author `json:"author"`
-	Title       string `json:"title"`
-	CreatedAt   string `json:"createdAt"`
-	LastUpdated string `json:"lastUpdatedAt"`
 	Body        string `json:"body"`
+	CreatedAt   string `json:"createdAt"`
+	ID          uint32 `json:"id"`
+	LastUpdated string `json:"lastUpdatedAt"`
+	Title       string `json:"title"`
 }
 
 // Author represents...
 type Author struct {
-	LastLogin uint32 `json:"lastLogin"`
 	ID        uint32 `json:"id"`
+	LastLogin uint32 `json:"lastLogin,omitempty"`
 	Username  string `json:"username"`
 }
 
@@ -52,7 +52,7 @@ func GetPosts(c *postgres.Conn) (*[]Post, error) {
 	for rows.Next() {
 		p := &Post{}
 
-		err = rows.Scan(&p.ID, &p.Author.Username, &p.Title, &p.CreatedAt, &p.LastUpdated, &p.Body)
+		err = rows.Scan(&p.ID, &p.Author.Username, &p.Author.ID, &p.Title, &p.CreatedAt, &p.LastUpdated, &p.Body)
 		*posts = append(*posts, *p)
 	}
 

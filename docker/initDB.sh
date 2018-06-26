@@ -5,35 +5,36 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
   SET TIME ZONE 'UTC';
 
   CREATE TABLE IF NOT EXISTS forum_category (
-      id          SERIAL PRIMARY KEY,
-      title       VARCHAR(50) NOT NULL UNIQUE
+      forum_category_id       SERIAL PRIMARY KEY,
+      title                   VARCHAR(50) NOT NULL UNIQUE
   );
 
   CREATE TABLE IF NOT EXISTS forum (
-      id          SERIAL PRIMARY KEY,
-      category    INTEGER REFERENCES forum_category(id) ON DELETE CASCADE,
-      title       VARCHAR(50) NOT NULL UNIQUE,
-      description VARCHAR(250) NOT NULL
+      forum_id      SERIAL PRIMARY KEY,
+      category      INTEGER REFERENCES forum_category(forum_category_id) ON DELETE CASCADE,
+      title         VARCHAR(50) NOT NULL UNIQUE,
+      description   VARCHAR(250) NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS user_account (
-      id          SERIAL PRIMARY KEY,
-      first_name  VARCHAR(25) NOT NULL,
-      last_name   VARCHAR(25) NOT NULL,
-      post_count  INTEGER NOT NULL DEFAULT 0,
-      email       VARCHAR(50) NOT NULL UNIQUE,
-      avatar_url  VARCHAR(50),
-      location    VARCHAR(50),
-      username    VARCHAR(50) NOT NULL UNIQUE
+      user_account_id     SERIAL PRIMARY KEY,
+      first_name          VARCHAR(25) NOT NULL,
+      last_name           VARCHAR(25) NOT NULL,
+      post_count          INTEGER NOT NULL DEFAULT 0,
+      email               VARCHAR(50) NOT NULL UNIQUE,
+      avatar_url          VARCHAR(50),
+      location            VARCHAR(50),
+      username            VARCHAR(50) NOT NULL UNIQUE,
+      last_login          TIMESTAMPTZ
   );
 
-  INSERT INTO user_account (first_name,last_name, email, username, avatar_url, location)
+  INSERT INTO user_account (first_name, last_name, email, username, avatar_url, location)
   VALUES  ('test', 'author', 'test_author@author.com', 'TestAuthor1', 'foo.jpg', 'Budapest'),
           ('test', 'author2', 'test_author2@author.com', 'TestAuthor2', 'bar.jpg', 'Kiev');
 
   CREATE TABLE IF NOT EXISTS post_body (
-      id          SERIAL PRIMARY KEY,
-      body        TEXT
+      post_body_id      SERIAL PRIMARY KEY,
+      body              TEXT
   );
 
   INSERT INTO post_body(body)
@@ -41,12 +42,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
           ('<p>Hello World 2</p>');
 
   CREATE TABLE IF NOT EXISTS post (
-      id            SERIAL PRIMARY KEY,
-      author_id     INTEGER REFERENCES user_account(id) ON DELETE CASCADE,
-      title         VARCHAR(25) NOT NULL,
-      body          INTEGER REFERENCES post_body(id) ON DELETE CASCADE,
-      created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      last_updated  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      post_id             SERIAL PRIMARY KEY,
+      author_id           INTEGER REFERENCES user_account(user_account_id) ON DELETE CASCADE,
+      title               VARCHAR(25) NOT NULL,
+      body                INTEGER REFERENCES post_body(post_body_id) ON DELETE CASCADE,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
 
   INSERT INTO post(author_id, title, body)
@@ -54,11 +55,22 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
           (2, 'Test Article 2', 2);
 
   CREATE VIEW posts_v AS
-    SELECT p.id, ua.username AS author, p.title, p.created_at, p.last_updated, pb.body
+    SELECT p.post_id, ua.username, p.author_id, p.title, p.created_at, p.last_updated_at, pb.body
     FROM post AS p
     LEFT JOIN post_body AS pb
-    ON p.body = pb.id
+    ON p.body = pb.post_body_id
     LEFT JOIN user_account AS ua
-    ON p.author_id = ua.id;
+    ON p.author_id = ua.user_account_id;
 
+  CREATE OR REPLACE FUNCTION update_last_updated_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.last_updated_at = now();
+        RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+
+  CREATE TRIGGER update_post_modtime
+    BEFORE UPDATE ON post
+    FOR EACH ROW EXECUTE PROCEDURE update_last_updated_column();
 SQL
