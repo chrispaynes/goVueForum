@@ -53,7 +53,7 @@ services:
       - "traefik.frontend.rule=Host:ui-vf.localhost"
       - "traefik.docker.network=proxy"
       - "traefik.port=8080"
-      - "traefik.frontend.passHostHeader=true"
+      - "traefik.frontend.passHostHeader=false"
   postgres:
     container_name: postgres
     build:
