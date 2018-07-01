@@ -11,7 +11,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
 
   INSERT INTO forum_category(title)
   VALUES  ('Test Category 1'),
-          ('Test Category 2');
+          ('Test Category 2'),
+          ('Test Category 3');
 
   CREATE TABLE IF NOT EXISTS forum (
       forum_id               SERIAL PRIMARY KEY,
@@ -20,9 +21,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
       description            VARCHAR(250) NOT NULL
   );
 
-  INSERT INTO forum(category, title, description)
-  VALUES  (1, 'Test Forum 1', 'Test 1 Description'),
-          (2, 'Test Forum 2', 'Test 1 Description');
+  INSERT INTO forum(forum_category_id, title, description)
+  VALUES  (1, 'Test Forum 1 - Category 1', 'Test Description'),
+          (1, 'Test Forum 2 - Category 1', 'Test Description'),
+          (2, 'Test Forum 1 - Category 2', 'Test Description'),
+          (2, 'Test Forum 2 - Category 2', 'Test Description'),
+          (3, 'Test Forum 1 - Category 3', 'Test Description');
 
   CREATE TABLE IF NOT EXISTS user_account (
       user_account_id     SERIAL PRIMARY KEY,
@@ -40,29 +44,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
   VALUES  ('test', 'author', 'test_author@author.com', 'TestAuthor1', 'foo.jpg', 'Budapest'),
           ('test', 'author2', 'test_author2@author.com', 'TestAuthor2', 'bar.jpg', 'Kiev');
 
-  CREATE TABLE IF NOT EXISTS post_body (
-      post_body_id      SERIAL PRIMARY KEY,
-      body              TEXT
-  );
-
-  INSERT INTO post_body(body)
-  VALUES  ('<p>Hello World 1</p>'),
-          ('<p>Hello World 2</p>');
-
-  CREATE TABLE IF NOT EXISTS post (
-      post_id             SERIAL PRIMARY KEY,
-      author_id           INTEGER REFERENCES user_account(user_account_id) ON DELETE CASCADE,
-      thread_id           INTEGER REFERENCES thread(thread_id) ON DELETE CASCADE,
-      title               VARCHAR(25),
-      body                INTEGER REFERENCES post_body(post_body_id) ON DELETE CASCADE,
-      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      last_updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  );
-
-  INSERT INTO post(author_id, title, body)
-  VALUES  (1, 'Test Article 1', 1),
-          (2, 'Test Article 2', 2);
-
   CREATE TABLE IF NOT EXISTS thread (
     thread_id           SERIAL PRIMARY KEY,
     forum_id            INTEGER REFERENCES forum(forum_id) ON DELETE CASCADE,
@@ -73,18 +54,49 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
   );
 
   INSERT INTO thread(forum_id, title, author_id)
-  VALUES  (1, 'Test Thread 1', 1),
-          (2, 'Test Thread 2', 2);
+  VALUES  (1, 'Test Thread - Forum 1 - Author 1', 1),
+          (1, 'Test Thread - Forum 1 - Author 2', 2),
+          (2, 'Test Thread - Forum 2 - Author 1', 1),
+          (2, 'Test Thread - Forum 2 - Author 2', 2);
+
+
+  CREATE TABLE IF NOT EXISTS post_body (
+      post_body_id      SERIAL PRIMARY KEY,
+      body              TEXT
+  );
+
+  INSERT INTO post_body(body)
+  VALUES  ('<p>Post Body 1</p>'),
+          ('<p>Post Body 2</p>'),
+          ('<p>Post Body 3</p>'),
+          ('<p>Post Body 4</p>'),
+          ('<p>Post Body 5</p>');
+
+  CREATE TABLE IF NOT EXISTS post (
+      post_id             SERIAL PRIMARY KEY,
+      author_id           INTEGER REFERENCES user_account(user_account_id) ON DELETE CASCADE,
+      thread_id           INTEGER REFERENCES thread(thread_id) ON DELETE CASCADE,
+      title               VARCHAR(75),
+      post_body_id        INTEGER REFERENCES post_body(post_body_id) ON DELETE CASCADE,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+
+  INSERT INTO post(author_id, thread_id, title, post_body_id)
+  VALUES  (1, 1, 'Test Article - Author 1 - Thread 1', 1),
+          (2, 1, 'Test Article - Author 2 - Thread 1', 2),
+          (1, 2, 'Test Article - Author 1 - Thread 2', 3),
+          (2, 2, 'Test Article - Author 2 - Thread 2', 4);
 
   CREATE VIEW posts_v AS
     SELECT p.post_id, ua.username, p.author_id, p.title, p.created_at, p.last_updated_at, pb.body
     FROM post AS p
     LEFT JOIN post_body AS pb
-    ON p.body = pb.post_body_id
+    ON p.post_body_id = pb.post_body_id
     LEFT JOIN user_account AS ua
     ON p.author_id = ua.user_account_id;
 
-  CREATE OR REPLACE FUNCTION update_last_updated_column()
+  CREATE FUNCTION update_last_updated_column()
     RETURNS TRIGGER AS $$
     BEGIN
         NEW.last_updated_at = now();
