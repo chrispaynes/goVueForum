@@ -10,4 +10,4 @@ dockerRestart:
 	@docker-compose up -d
 
 postgresRebuild:
-	docker rm $$(docker ps -a | grep postgres | awk {'print $$1'}) -f && docker-compose up
+	docker rm $$(docker ps -a | grep postgres | awk {'print $$1'}) -f && docker-compose up --build --force-recreate postgres

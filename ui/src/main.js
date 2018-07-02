@@ -41,7 +41,7 @@ const routes = [{
   component: Login,
 },
 {
-  path: '/profile',
+  path: '/profile/:user',
   component: Profile,
 },
 {
@@ -56,7 +56,7 @@ const routes = [{
 },
 ];
 
-const router = new VueRouter({ routes });
+const router = new VueRouter({ routes, mode: 'history' });
 
 
 new Vue({

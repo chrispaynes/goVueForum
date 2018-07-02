@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
@@ -20,7 +20,7 @@ type forumCategory struct {
 type Conn struct {
 	host string
 	url  string
-	DB   *sql.DB
+	DB   *sqlx.DB
 }
 
 // NewConn ...
@@ -33,7 +33,7 @@ func NewConn(host string) *Conn {
 
 // Open ...
 func (c *Conn) Open() error {
-	db, err := sql.Open("postgres", c.url)
+	db, err := sqlx.Connect("postgres", c.url)
 
 	if err != nil {
 		return fmt.Errorf("%s", err.Error())
@@ -45,10 +45,16 @@ func (c *Conn) Open() error {
 }
 
 // Close ...
-func (c *Conn) Close() {
+func (c *Conn) Close() error {
 	if c.DB != nil {
-		c.DB.Close()
+		err := c.DB.Close()
+
+		if err != nil {
+			return fmt.Errorf("%s", err.Error())
+		}
 	}
+
+	return nil
 }
 
 // GetCategories ...

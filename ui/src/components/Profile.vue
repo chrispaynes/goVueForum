@@ -1,46 +1,39 @@
 <template>
         <div id='profile_component' class='col-xs-12'>
-            <h1 class='text-center margin-lg'>{{ profile.user_username }}'s User Profile</h1>
-            <div class='col-xs-12'>Email: {{ profile.user_email }}</div>
-            <div class='col-xs-12'>Firstname: {{ profile.user_firstname }}</div>
-            <div class='col-xs-12'>ID: {{ profile.user_id_PK }}</div>
+            <h1 class='text-center margin-lg'>{{ profile.username }}'s User Profile</h1>
+            <div class='col-xs-12'>Email: {{ profile.email }}</div>
+            <div class='col-xs-12'>Firstname: {{ profile.firstName }}</div>
+            <div class='col-xs-12'>ID: {{ profile.id }}</div>
             <div class='col-xs-12'>Admin: {{ profile.user_is_admin }}</div>
-            <div class='col-xs-12'>Lastname: {{ profile.user_lastname }}</div>
+            <div class='col-xs-12'>Lastname: {{ profile.lastName }}</div>
             <div class='col-xs-12'>Password: {{ password }}</div>
-            <div class='col-xs-12'>Username: {{ profile.user_username }}</div>
+            <div class='col-xs-12'>Username: {{ profile.username }}</div>
             <hr />
         </div>
 </template>
 
 <script>
   import Cookies from "cookie";
+  import axios from "axios";
 
   export default {
     name: 'Profile',
     data: function() {
-        return {profile: this.profile, password: self.password};
+        return {profile: {}, password: {}};
     },
     beforeCreate: function() {
         var self = this;
 
-        if(Cookies.get('username') && Cookies.get('user_id')) {
-            axios.get('data/queries/User.php', {
-                params: {
-                    user: Cookies.get('username') || Cookies.get('user_id'),
-                },
-            })
+        // if(Cookies.get('username') && Cookies.get('user_id')) {
+            axios.get('http://api-vf.localhost/user/' + this.$route.params.user, {})
             .then(function (response) {
-                self.profile = response.data[0];
-                self.password = response.data[0].user_password.replace(/./g, "*");
-                // pad short passwords
-                while(self.password.length < 10) {
-                    self.password += '*';
-                }
+                self.profile = response.data.result.data.user;
+                // self.password = response.data[0].user_password.replace(/./g, "*");
             })
             .catch(function (error) {
                 console.log(error);
             });
-        }
+        // }
     },
   }
 </script>

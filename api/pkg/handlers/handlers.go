@@ -92,8 +92,6 @@ func writeJSONresponse(w http.ResponseWriter, h http.Header, t time.Time, err er
 	w.Header().Set("Access-Control-Allow-Headers", "content-type")
 	w.Header().Set("Access-Control-Allow-Origin", h.Get("Origin"))
 
-	fmt.Printf("\n\nMAP: %v\n\n", m)
-
 	code := 200
 	elapsed := time.Since(t)
 
