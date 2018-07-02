@@ -32,7 +32,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
       user_account_id     SERIAL PRIMARY KEY,
       first_name          VARCHAR(25) NOT NULL,
       last_name           VARCHAR(25) NOT NULL,
-      post_count          INTEGER NOT NULL DEFAULT 0,
+      post_count          SERIAL NOT NULL DEFAULT 0,
       email               VARCHAR(50) NOT NULL UNIQUE,
       avatar_url          VARCHAR(50),
       location            VARCHAR(50),
@@ -132,4 +132,31 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
         FROM user_account
         WHERE user_account_id = $1;
     $function$ LANGUAGE SQL;
+
+  CREATE VIEW users_v AS
+    SELECT
+        avatar_url,
+        email,
+        first_name,
+        user_account_id,
+        last_login,
+        last_name,
+        location,
+        post_count,
+        username
+        FROM user_account;
+
+  CREATE or REPLACE FUNCTION increment_post_count() RETURNS TRIGGER AS
+    $$
+    BEGIN
+        UPDATE user_account
+        SET post_count = post_count + 1
+        WHERE user_account_id = new.author_id;
+        RETURN new;
+    end;
+    $$ LANGUAGE plpgsql;
+
+  CREATE TRIGGER increment_user_post_count
+    AFTER INSERT ON post
+    FOR EACH ROW EXECUTE PROCEDURE increment_post_count();
 SQL
