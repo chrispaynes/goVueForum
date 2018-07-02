@@ -107,4 +107,29 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-S
   CREATE TRIGGER update_post_modtime
     BEFORE UPDATE ON post
     FOR EACH ROW EXECUTE PROCEDURE update_last_updated_column();
+
+  CREATE or REPLACE FUNCTION get_user(user_id integer)
+    RETURNS TABLE ( avatar_url varchar,
+                    email varchar,
+                    first_name varchar,
+                    user_account_id integer,
+                    last_login timestamptz,
+                    last_name varchar,
+                    location varchar,
+                    post_count integer,
+                    username varchar
+                  ) AS $function$
+    SELECT
+        avatar_url,
+        email,
+        first_name,
+        user_account_id,
+        last_login,
+        last_name,
+        location,
+        post_count,
+        username
+        FROM user_account
+        WHERE user_account_id = $1;
+    $function$ LANGUAGE SQL;
 SQL

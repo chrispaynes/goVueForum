@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"goVueForum/api/pkg/postgres"
@@ -87,7 +88,7 @@ func GetPosts(c *postgres.Conn) (*[]Post, error) {
 	err = rows.Err()
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan rows to destination: %s", err.Error())
+		return nil, fmt.Errorf("failed to scan posts response to destination: %s", err.Error())
 	}
 
 	return posts, nil
@@ -95,26 +96,19 @@ func GetPosts(c *postgres.Conn) (*[]Post, error) {
 
 func fetchUser(ID string, conn *postgres.Conn) (*User, error) {
 	user := &User{}
-	fmt.Println("ID: ", ID)
 
-	row := conn.DB.QueryRow(`SELECT
-                            avatar_url,
-                            email,
-                            first_name,
-                            user_account_id AS id,
-                            last_login,
-                            last_name,
-                            location,
-                            post_count,
-                            username
-                            FROM user_account
-                            WHERE user_account_id = $1 
-                          `, ID)
-
-	err := row.Scan(&user.AvatarURL, &user.Email, &user.FirstName, &user.ID, &user.LastLogin, &user.LastName, &user.Location, &user.PostCount, &user.Username)
+	userID, err := strconv.Atoi(ID)
 
 	if err != nil {
-		return nil, fmt.Errorf("%s", err)
+		return nil, fmt.Errorf("failed to parse ID %v to an integer: %s", ID, err)
+	}
+
+	row := conn.DB.QueryRow("SELECT * FROM get_user($1)", userID)
+
+	err = row.Scan(&user.AvatarURL, &user.Email, &user.FirstName, &user.ID, &user.LastLogin, &user.LastName, &user.Location, &user.PostCount, &user.Username)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan user response to destination: %s", err)
 	}
 
 	return user, nil
