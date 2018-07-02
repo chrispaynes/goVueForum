@@ -16,7 +16,9 @@
                     <div class='row' v-if='index == 0'>
                         <div class='col-xs-12 col-md-4'>
                             <div class='post_author'>
-                                <h3 class='txt-green'>{{ p.author.username }}</h3>
+                              <router-link :to="{ path: `/profile/${p.author.id}`}">
+                                <h3>{{ p.author.username }}</h3>
+                              </router-link>
                             </div>
                             <div class='txt-gray post_date'>{{ p.lastUpdatedAt}}</div>
                         </div>
@@ -26,7 +28,9 @@
                 <div class='row col-xs-12' v-if='index > 0'>
                     <div class='col-xs-12 col-md-4 txt-blue'>
                         <div class='post_author'>
+                          <router-link :to="{ path: `/profile/${p.author.id}`}">
                             <h3>{{ p.author.username }}</h3>
+                          </router-link>
                         </div>
                         <div class='txt-gray post_date'>{{ p.lastUpdatedAt }}</div>
                     </div>

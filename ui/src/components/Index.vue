@@ -21,7 +21,7 @@
                             <router-link :to="{ path: `/thread/${p.id}`}" class='postlink'><strong>{{ p.title }}</strong></router-link>
                         </div>
                         <div class='col-xs-offset-1 col-xs-12 col-sm-3 col-md-offset-0 col-md-2'>by
-                          <router-link :to="{ path: `/user/${p.author.id}`}">{{ p.author.username }}</router-link>
+                          <router-link :to="{ path: `/profile/${p.author.id}`}">{{ p.author.username }}</router-link>
                            </div>
                         <div class='col-xs-offset-1 col-xs-12 col-sm-8 col-md-offset-0 col-md-4'> {{ p.lastUpdatedAt }}</div>
                     </div>

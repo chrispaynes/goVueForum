@@ -6,7 +6,6 @@
             <div class='col-xs-12'>ID: {{ profile.id }}</div>
             <div class='col-xs-12'>Admin: {{ profile.user_is_admin }}</div>
             <div class='col-xs-12'>Lastname: {{ profile.lastName }}</div>
-            <div class='col-xs-12'>Password: {{ password }}</div>
             <div class='col-xs-12'>Username: {{ profile.username }}</div>
             <hr />
         </div>
