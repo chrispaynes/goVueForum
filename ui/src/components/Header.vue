@@ -1,6 +1,6 @@
 <template>
     <div id='header_component' class='container-fluid col-xs-12 margin-bottom-xl text-center'>
-        <h1 class='text-center margin-lg'>User Index</h1>
+        <h1 class='text-center margin-lg'></h1>
         <div class='row'>
             <div id='logo' class='col-xs-12 col-md-4'>
                 <h1 class='text-size-lg'><span class='txt-blue'>Vue</span><span class='txt-green'>Forums</span></h1>

@@ -5,10 +5,12 @@
                     <div class='row txt-green bold'>
                         <div class='col-xs-1 col-sm-1'>ID</div>
                         <div class='col-xs-3 col-sm-2'>Username</div>
+                        <div class='col-xs-3 col-sm-1'>Post Count</div>
                         <div class='col-xs-3 col-sm-2'>First Name</div>
                         <div class='col-xs-4 col-sm-1'>Last Initial</div>
                         <div class='col-xs-11 col-xs-offset-1 col-sm-offset-0 col-sm-3'>Email</div>
-                        <div class='col-xs-11 col-xs-offset-1 col-sm-offset-0 col-sm-3'>Access Level</div>
+                        <div class='col-xs-3 col-sm-2'>Location</div>
+                        <!-- <div class='col-xs-11 col-xs-offset-1 col-sm-offset-0 col-sm-3'>Access Level</div> -->
                     </div>
                     <hr class='hr-bdr-4 margin-top-xs'/>
                 </li>
@@ -18,13 +20,21 @@
                     class='col-xs-12'
                 >
                     <div class='row pad-vert-sm'>
-                        <div class='col-xs-1 col-sm-1'>#{{ u.user_id_PK }}</div>
-                        <div class='col-xs-2 col-sm-2 text-size-sm'><strong>{{ u.user_username }}</strong></div>
-                        <div class='col-xs-3 col-sm-2'>{{ u.user_firstname }}</div>
-                        <div class='col-xs-2 col-sm-1'>{{ u.user_lastname[0] }}.</div>
-                        <div class='col-xs-offset-1 col-xs-4  col-sm-offset-0 col-sm-3'>{{ u.user_email }}</div>
-                        <div class='col-xs-offset-1 col-xs-12 col-sm-offset-0 col-sm-3 txt-green' v-if='u.user_is_admin === "true"'><strong><i>Admin</i></strong></div>
-                        <div class='col-xs-offset-1 col-xs-12 col-sm-offset-0 col-sm-3 txt-blue' v-if='u.user_is_admin === "false"'><i>User</i></div>
+                        <div class='col-xs-1 col-sm-1'>#{{ u.id }}</div>
+                        <div class='col-xs-2 col-sm-2 text-size-sm'>
+                          <router-link :to="{ path: `/profile/${u.id}`}">
+                            <strong>{{ u.username }}</strong>
+                          </router-link>
+                        </div>
+                        <div class='col-xs-3 col-sm-1'>{{ u.postCount }}</div>
+                        <div class='col-xs-3 col-sm-2'>{{ u.firstName }}</div>
+                        <div class='col-xs-2 col-sm-1'>{{ u.lastName[0] }}.</div>
+                        <div class='col-xs-offset-1 col-xs-4 col-sm-offset-0 col-sm-3'>
+                          {{ u.email }}
+                        </div>
+                        <div class='col-xs-3 col-sm-2'>{{ u.location }}</div>
+                        <!-- <div class='col-xs-offset-1 col-xs-12 col-sm-offset-0 col-sm-3 txt-green' v-if='u.user_is_admin === "true"'><strong><i>Admin</i></strong></div>
+                        <div class='col-xs-offset-1 col-xs-12 col-sm-offset-0 col-sm-3 txt-blue' v-if='u.user_is_admin === "false"'><i>User</i></div> -->
                     </div>
                     <hr />
                 </li>
@@ -33,18 +43,20 @@
 </template>
 
 <script>
+  import axios from 'axios';
+
   export default {
     name: 'UserIndex',
     props: ['users'],
     data: function() {
-        return { users: [] };
+        return { };
     },
     beforeCreate: function() {
         var self = this;
 
-        axios.get('./data/queries/User.php', {})
+        axios.get('http://api-vf.localhost/users', {})
         .then(function(response) {
-            self.users = response.data;
+            self.users = response.data.result.data.users;
         })
         .catch(function(error) {
             console.log(error);
