@@ -34,15 +34,15 @@ type Author struct {
 
 // User represents...
 type User struct {
-	AvatarURL sql.NullString `json:"avatarUrl"`
-	Email     string         `json:"email"`
-	FirstName string         `json:"firstName"`
-	ID        uint32         `json:"id"`
-	LastLogin sql.NullString `json:"lastLogin"`
-	LastName  string         `json:"lastName"`
-	Location  sql.NullString `json:"location"`
-	PostCount string         `json:"postCount"`
-	Username  string         `json:"username"`
+	AvatarURL *string `json:"avatarUrl"`
+	Email     string  `json:"email"`
+	FirstName string  `json:"firstName"`
+	ID        uint32  `json:"id"`
+	LastLogin *string `json:"lastLogin"`
+	LastName  string  `json:"lastName"`
+	Location  *string `json:"location"`
+	PostCount string  `json:"postCount"`
+	Username  string  `json:"username"`
 }
 
 type forumCategory struct {
@@ -112,7 +112,6 @@ func fetchUser(ID string, conn *postgres.Conn) (*User, error) {
 	}
 
 	return user, nil
-
 }
 
 // fetchThread ...
@@ -271,7 +270,7 @@ func GetUser(w http.ResponseWriter, req *http.Request) {
 	user, err := fetchUser(vars["id"], conn)
 
 	if err != nil {
-		log.Errorf("error fetch user: %v", err.Error())
+		log.Errorf("failed to fetch user: %v", err.Error())
 	}
 
 	res = JSONresponse{
@@ -283,6 +282,64 @@ func GetUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	writeJSONresponse(w, req.Header, start, nil, res)
+}
+
+// GetUsers ...
+func GetUsers(w http.ResponseWriter, req *http.Request) {
+	conn := postgres.NewConn(viper.GetString("dev.bridge_IP"))
+	err := conn.Open()
+	defer conn.Close()
+	var res JSONresponse
+	start := time.Now()
+
+	if err != nil {
+		res = JSONresponse{
+			Error: err.Error(),
+		}
+
+		writeJSONresponse(w, req.Header, start, err, res)
+		return
+	}
+
+	users, err := fetchUsers(conn)
+
+	if err != nil {
+		log.Errorf("failed to fetch users: %v", err.Error())
+	}
+
+	res = JSONresponse{
+		Result: Result{
+			Data: map[string]interface{}{
+				"users": users,
+			},
+		},
+	}
+
+	writeJSONresponse(w, req.Header, start, nil, res)
+}
+
+func fetchUsers(conn *postgres.Conn) (*[]User, error) {
+	rows, err := conn.DB.Query("SELECT * FROM users_v")
+	defer rows.Close()
+
+	if err != nil {
+		log.Infof("failed to fetch users: %s", err.Error())
+	}
+
+	users := []User{}
+
+	for rows.Next() {
+		u := &User{}
+
+		err = rows.Scan(&u.AvatarURL, &u.Email, &u.FirstName, &u.ID, &u.LastLogin, &u.LastName, &u.Location, &u.PostCount, &u.Username)
+		users = append(users, *u)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan user response to destination: %s", err)
+	}
+
+	return &users, nil
 }
 
 // GetIndex ...
