@@ -19,12 +19,12 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     curl \
-    && curl -fsSLO --compressed "https://nodejs.org/dist/latest-v10.x/node-v10.4.1-linux-x64.tar.xz" \
-    && tar -xJf "node-v10.4.1-linux-x64.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
+    && curl -fsSLO --compressed "https://nodejs.org/dist/v10.9.0/node-v10.9.0-linux-x64.tar.xz" \
+    && tar -xJf "node-v10.9.0-linux-x64.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
     && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
     && apt-get purge -y curl build-essential ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
-    && rm node-v10.4.1-linux-x64.tar.xz
+    && rm node-v10.9.0-linux-x64.tar.xz
 WORKDIR /app
 COPY nginx/default.conf /etc/nginx/conf.d/
 COPY ./ui/package.json .
