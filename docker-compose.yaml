@@ -22,13 +22,15 @@ services:
     build:
       context: .
       dockerfile: ./docker/API.Dev.Dockerfile
+    volumes:
+      - ${GOPATH}/src/goVueForum/api:/go/src/goVueForum/api
+    restart: always
     networks:
       - proxy
-    volumes:
-      - ~/go/src/goVueForum/api:/go/src/goVueForum/api
-    restart: always
+    ports:
+      - "3000:3000"
     env_file:
-      - ~/go/src/goVueForum/docker/postgres.env
+      - ${GOPATH}/src/goVueForum/docker/postgres/postgres.env
     depends_on:
       - postgres
       - redis
@@ -58,16 +60,16 @@ services:
     container_name: postgres
     build:
       context: .
-      dockerfile: ./docker/Postgres.Dockerfile
+      dockerfile: ./docker/postgres/postgres.dockerfile
     networks:
       - proxy
     restart: always
     env_file:
-      - ~/go/src/goVueForum/docker/postgres.env
+      - ${GOPATH}/src/goVueForum/docker/postgres/postgres.env
     ports:
       - "5432:5432"
     volumes:
-      - ~/go/src/goVueForum/./tmp/db:/var/lib/postgresql/data
+      - ${GOPATH}/src/goVueForum/api/pgdata:/var/lib/postgresql/data
     labels:
       - "traefik.enable=false"
   redis:
@@ -79,7 +81,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - ~/go/src/goVueForum/.tmp/redis:/data
+      - ${GOPATH}/src/goVueForum/.tmp/redis:/data
     labels:
       - "traefik.enable=false"
   rabbitMQ:
@@ -89,7 +91,7 @@ services:
       - proxy
     restart: always
     env_file:
-      - ~/go/src/goVueForum/docker/rabbitmq.env
+      - ${GOPATH}/src/goVueForum/docker/rabbitmq.env
     ports:
       - "5672:5672"
     labels:
