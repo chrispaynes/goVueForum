@@ -1,35 +1,36 @@
 package handlers
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"goVueForum/api/pkg/postgres"
 
-	"database/sql"
-
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx/reflectx"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 // Post represents ...
 type Post struct {
-	Author      Author `json:"author"`
-	Body        string `json:"body"`
-	CreatedAt   string `json:"createdAt"`
-	ID          uint32 `json:"id"`
-	LastUpdated string `json:"lastUpdatedAt"`
-	Title       string `json:"title"`
+	Author      `json:"author"`
+	Body        string `json:"body" db:"body"`
+	CreatedAt   string `json:"createdAt" db:"created_at"`
+	ID          uint32 `json:"id" db:"post_id"`
+	LastUpdated string `json:"lastUpdatedAt" db:"last_updated_at"`
+	Title       string `json:"title" db:"title"`
 }
 
 // Author represents...
 type Author struct {
-	ID        uint32 `json:"id"`
+	Username  string `json:"username" db:"author_username"`
+	ID        uint32 `json:"id" db:"author_id"`
 	LastLogin uint32 `json:"lastLogin,omitempty"`
-	Username  string `json:"username"`
 }
 
 // User represents...
@@ -69,23 +70,24 @@ func GetHealth(w http.ResponseWriter, req *http.Request) {
 
 // GetPosts ...
 func GetPosts(c *postgres.Conn) (*[]Post, error) {
-	rows, err := c.DB.Query("SELECT * FROM posts_v")
+	stmt, err := c.DB.Preparex("select * from titan.posts_v")
+	defer c.DB.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to perform query: %s", err.Error())
+		return nil, fmt.Errorf("failed to prepare select statement : %s", err.Error())
 	}
 
-	defer rows.Close()
+	rows, err := stmt.Queryx()
 
 	posts := &[]Post{}
+	c.DB.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
+
 	for rows.Next() {
-		p := &Post{}
+		var p Post
 
-		err = rows.Scan(&p.ID, &p.Author.Username, &p.Author.ID, &p.Title, &p.CreatedAt, &p.LastUpdated, &p.Body)
-		*posts = append(*posts, *p)
+		err = rows.StructScan(&p)
+		*posts = append(*posts, p)
 	}
-
-	err = rows.Err()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan posts response to destination: %s", err.Error())
@@ -134,7 +136,7 @@ func fetchThread(ID string, conn *postgres.Conn) (*Thread, error) {
           t.thread_id,
           t.last_reply_at,
           t.title
-        FROM thread t
+        FROM titan.thread t
         LEFT JOIN post p
           ON t.thread_id = p.thread_id
         LEFT JOIN user_account u
@@ -155,7 +157,7 @@ func fetchThread(ID string, conn *postgres.Conn) (*Thread, error) {
 		posts := &[]Post{}
 		rows := &sql.Rows{}
 
-		rows, _ = conn.DB.Query(`
+		rows, err := conn.DB.Query(`
         SELECT
           u.user_account_id,
           u.username,
@@ -164,18 +166,23 @@ func fetchThread(ID string, conn *postgres.Conn) (*Thread, error) {
           p.post_id,
           p.last_updated_at,
           p.title
-        FROM post p
+        FROM titan.post p
         LEFT JOIN post_body pb
           ON pb.post_body_id = p.post_body_id
-        LEFT JOIN user_account u
+        LEFT JOIN titan.users_v u
           ON p.author_id = u.user_account_id
         WHERE p.thread_id = $1;
-        `, ID)
+		`, ID)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
 		defer rows.Close()
 
 		for rows.Next() {
 			p := Post{}
-			err := rows.Scan(&p.Author.ID, &p.Author.Username, &p.Body, &p.CreatedAt, &p.ID, &p.LastUpdated, &p.Title)
+			err := rows.Scan(&p)
 
 			*posts = append(*posts, p)
 			if err != nil {
@@ -214,9 +221,8 @@ func fetchThread(ID string, conn *postgres.Conn) (*Thread, error) {
 
 // GetThread ...
 func GetThread(w http.ResponseWriter, req *http.Request) {
-	conn := postgres.NewConn(viper.GetString("dev.bridge_IP"))
+	conn := postgres.NewConn(viper.GetString("dev.BRIDGE_IP"), "READONLY")
 	err := conn.Open()
-	defer conn.Close()
 	var res JSONresponse
 	start := time.Now()
 
@@ -228,6 +234,8 @@ func GetThread(w http.ResponseWriter, req *http.Request) {
 		writeJSONresponse(w, req.Header, start, err, res)
 		return
 	}
+
+	defer conn.Close()
 
 	vars := mux.Vars(req)
 
@@ -250,7 +258,7 @@ func GetThread(w http.ResponseWriter, req *http.Request) {
 
 // GetUser ...
 func GetUser(w http.ResponseWriter, req *http.Request) {
-	conn := postgres.NewConn(viper.GetString("dev.bridge_IP"))
+	conn := postgres.NewConn(viper.GetString("dev.BRIDGE_IP"), "READONLY")
 	err := conn.Open()
 	defer conn.Close()
 	var res JSONresponse
@@ -286,7 +294,7 @@ func GetUser(w http.ResponseWriter, req *http.Request) {
 
 // GetUsers ...
 func GetUsers(w http.ResponseWriter, req *http.Request) {
-	conn := postgres.NewConn(viper.GetString("dev.bridge_IP"))
+	conn := postgres.NewConn(viper.GetString("dev.BRIDGE_IP"), "READONLY")
 	err := conn.Open()
 	defer conn.Close()
 	var res JSONresponse
@@ -344,11 +352,11 @@ func fetchUsers(conn *postgres.Conn) (*[]User, error) {
 
 // GetIndex ...
 func GetIndex(w http.ResponseWriter, req *http.Request) {
-	conn := postgres.NewConn(viper.GetString("dev.bridge_IP"))
-	err := conn.Open()
-	defer conn.Close()
-	var res JSONresponse
+	conn := postgres.NewConn(viper.GetString("dev.BRIDGE_IP"), "READONLY")
 
+	err := conn.Open()
+
+	var res JSONresponse
 	start := time.Now()
 
 	if err != nil {
@@ -359,6 +367,8 @@ func GetIndex(w http.ResponseWriter, req *http.Request) {
 		writeJSONresponse(w, req.Header, start, err, res)
 		return
 	}
+
+	defer conn.Close()
 
 	posts, err := GetPosts(conn)
 

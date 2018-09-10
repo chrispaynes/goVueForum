@@ -89,6 +89,7 @@ func Get(i interface{}, key string) (reflect.Value, error) {
 }
 
 func writeJSONresponse(w http.ResponseWriter, h http.Header, t time.Time, err error, m JSONresponse) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Headers", "content-type")
 	w.Header().Set("Access-Control-Allow-Origin", h.Get("Origin"))
 

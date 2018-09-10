@@ -2,44 +2,70 @@ package postgres
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var log = logrus.New()
 
 type forumCategory struct {
-	ID    uint64
-	Title string
+	ID    uint64 `db:"forum_category_id"`
+	Title string `db:"title"`
 }
 
 // Conn ...
 type Conn struct {
-	host string
-	url  string
+	Host string
+	URL  string
 	DB   *sqlx.DB
 }
 
+// Role ...
+type Role struct {
+	username string
+	password string
+}
+
+// NewRole ...
+func NewRole(rolename string) *Role {
+	viper.SetConfigName("app")
+	viper.AddConfigPath("../../")
+
+	return &Role{
+		username: viper.GetString("dev.POSTGRES_" + rolename + "_USERNAME"),
+		password: viper.GetString("dev.POSTGRES_" + rolename + "_PASSWORD"),
+	}
+}
+
+func (r *Role) name() string {
+	return r.username
+}
+
+func (r *Role) passwd() string {
+	return r.password
+}
+
 // NewConn ...
-func NewConn(host string) *Conn {
+func NewConn(host string, rolename string) *Conn {
+	role := NewRole(rolename)
+
 	return &Conn{
-		host: host,
-		url:  "user=" + os.Getenv("POSTGRES_USER") + " password=" + os.Getenv("POSTGRES_PASSWORD") + " dbname=" + os.Getenv("POSTGRES_DB") + " host=" + host + " sslmode=disable",
+		Host: host,
+		URL:  "user=" + role.name() + " password=" + role.passwd() + " dbname=" + "vueforum" + " host=" + host + " sslmode=disable" + " connect_timeout=5",
 	}
 }
 
 // Open ...
 func (c *Conn) Open() error {
-	db, err := sqlx.Connect("postgres", c.url)
+	var err error
+
+	c.DB, err = sqlx.Connect("postgres", c.URL)
 
 	if err != nil {
-		return fmt.Errorf("%s", err.Error())
+		return fmt.Errorf("failed to open connection to postgres database %s", err.Error())
 	}
-
-	c.DB = db
 
 	return nil
 }
@@ -59,7 +85,7 @@ func (c *Conn) Close() error {
 
 // GetCategories ...
 func (c *Conn) GetCategories() {
-	rows, err := c.DB.Query("SELECT * from forum_category")
+	rows, err := c.DB.Query("SELECT * from titan.forum_category")
 	defer rows.Close()
 	if err != nil {
 		log.Infof("failed to perform query: %s", err.Error())

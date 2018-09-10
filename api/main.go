@@ -1,10 +1,12 @@
 package main
 
 import (
-	"goVueForum/api/pkg/postgres"
+	"net/http"
+
+	_ "github.com/lib/pq"
+
 	"goVueForum/api/pkg/rabbitmq"
 	"goVueForum/api/pkg/router"
-	"net/http"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -18,7 +20,6 @@ func main() {
 
 	viper.SetConfigName("app")
 	viper.AddConfigPath(".")
-	viper.WatchConfig()
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Infof("failed to read config file: %s", err.Error())
@@ -27,9 +28,9 @@ func main() {
 	r := router.New()
 	log.Infoln("Starting goVueForum application...")
 
-	rabbitURL := viper.GetString("dev.rabbitMQ_url")
-	port := viper.GetString("dev.server_port")
-	addr := viper.GetString("dev.server_address") + port
+	rabbitURL := viper.GetString("dev.RABBITMQ_URL")
+	port := viper.GetString("dev.SERVER_PORT")
+	addr := viper.GetString("dev.SERVER_ADDRESS") + port
 
 	if rabbitURL == "amqp://user:password@0.0.0.0:5672" {
 		log.Fatalln("invalid rabbitMQ connection string")
@@ -46,15 +47,4 @@ func main() {
 	}()
 
 	rabbitmq.Init(rabbitURL)
-
-	c := postgres.NewConn(viper.GetString("dev.bridge_IP"))
-	err := c.Open()
-
-	if err != nil {
-		log.Infof("failed to open Postgres database connection: %v", err)
-	}
-
-	c.GetCategories()
-
-	defer c.Close()
 }

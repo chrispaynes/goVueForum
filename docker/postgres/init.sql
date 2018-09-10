@@ -6,7 +6,7 @@ CREATE SCHEMA ganymede;
 CREATE SCHEMA titan;
 
 -- CREATE ADMIN ROLE
-CREATE ROLE admin WITH LOGIN SUPERUSER CREATEDB CREATEROLE REPLICATION NOINHERIT PASSWORD <INSERT PASSWORD>;
+CREATE ROLE admin WITH LOGIN SUPERUSER CREATEDB CREATEROLE REPLICATION NOINHERIT PASSWORD '<INSERT PASSWORD>';
 GRANT ALL PRIVILEGES ON DATABASE vueforum to admin;
 ALTER ROLE admin SET search_path = ganymede, titan;
 
@@ -21,7 +21,7 @@ ALTER ROLE read_write_user SET search_path = ganymede, titan;
 ALTER ROLE read_write_user WITH NOINHERIT;
 
 -- CREATE READ_ONLY ROLE
-CREATE ROLE read_user WITH LOGIN NOINHERIT PASSWORD <INSERT PASSWORD>;
+CREATE ROLE read_user WITH LOGIN NOINHERIT PASSWORD '<INSERT PASSWORD>';
 REVOKE ALL PRIVILEGES ON SCHEMA ganymede FROM read_user;
 ALTER ROLE read_user SET search_path = titan;
 ALTER DEFAULT PRIVILEGES IN SCHEMA titan GRANT SELECT ON TABLES TO read_user;
@@ -134,7 +134,7 @@ INSERT INTO titan.post (author_id, thread_id, title, post_body_id)
 CREATE OR REPLACE VIEW titan.posts_v AS
 SELECT
   p.post_id,
-  ua.username,
+  ua.username AS author_username,
   p.author_id,
   p.title,
   p.created_at,

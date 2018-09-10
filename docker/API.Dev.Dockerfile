@@ -1,4 +1,4 @@
-FROM golang:1.10.3
+FROM golang:1.11.0
 WORKDIR /go/src/goVueForum/api
 COPY ./api .
 RUN export GOBIN="/go/bin" \

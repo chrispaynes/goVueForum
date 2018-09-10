@@ -1,5 +1,9 @@
 [dev]
-server_address = "0.0.0.0"
-server_port = ":3000"
-rabbitMQ_url = "amqp://user:password@0.0.0.0:5672"
-bridge_IP = "0.0.0.0"
+SERVER_ADDRESS = "0.0.0.0"
+SERVER_PORT = ":3000"
+RABBITMQ_URL = "amqp://user:password@0.0.0.0:5672"
+BRIDGE_IP = "0.0.0.0"
+POSTGRES_USER_USERNAME = "read_write_user"
+POSTGRES_USER_PASSWORD = <INSERT PASSWORD>
+POSTGRES_READONLY_USERNAME = "read_user"
+POSTGRES_READONLY_PASSWORD = <INSERT PASSWORD>
